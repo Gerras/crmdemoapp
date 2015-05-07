@@ -1,0 +1,41 @@
+﻿@model IEnumerable<Xrm.Contact>
+
+@{
+    ViewBag.Title = "View Contacts";
+}
+
+
+<br/>
+<div class="row">
+    <div class="panel panel-default">
+        <div class="panel-heading">
+            <b>View Contacts</b>
+        </div>
+        <div class="panel-body">
+            <table class="table table-bordered table-striped">
+                <thead>
+                <tr>
+                    <td>First Name</td>
+                    <td>Last Name</td>
+                    <td>City</td>
+                    <td>Email Address</td>
+                    <td>User Name</td>
+                </tr>
+                </thead>
+                <tbody>
+                @foreach (var contact in Model)
+                {
+                    <tr>
+                        <td>@contact.FirstName</td>
+                        <td>@contact.LastName</td>
+                        <td>@contact.Address1_City</td>
+                        <td>@contact.EMailAddress1</td>
+                        <td>@contact.new_UserName</td>
+
+                    </tr>
+                }
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>

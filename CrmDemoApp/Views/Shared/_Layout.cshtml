@@ -1,0 +1,50 @@
+﻿<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="description" content="CRM Demo Application" />
+    <title>@ViewBag.Title | CRM Demo App</title>
+    <link rel="stylesheet" href="http://fonts.googleapis.com/css?family=Noto+Sans:400,700,400italic">
+    @Styles.Render("~/Content/css")
+    @Styles.Render("~/Content/neon")
+    @Scripts.Render("~/bundles/modernizr")
+
+</head>
+<body class="page-body">
+
+<div class="page-container horizontal-menu">
+    <header class="navbar navbar-fixed-top">
+        <div class="navbar-inner">
+            <!--Logo-->
+            <div class="navbar-brand">
+                <a href="@Url.Action("Index", "Home")">
+                    Demo Application
+                </a>
+            </div>
+            <ul class="navbar-nav">
+                <li>@Html.ActionLink("Home", "Index", "Home")</li>
+                <li>@Html.ActionLink("About", "About", "Home")</li>
+                <li>@Html.ActionLink("Contact", "Contact", "Home")</li>
+            </ul>
+            <ul class="nav navbar-right pull-right">
+                @Html.Partial("_LoginPartial")
+            </ul>
+        </div>
+    </header>
+    <div class="main-content">
+        @RenderBody()
+        <hr/>
+        <footer>
+            <p>@DateTime.Now.Year - CRM Demo App</p>
+        </footer>
+    </div>
+</div>
+
+@Scripts.Render("~/bundles/jquery")
+@Scripts.Render("~/bundles/bootstrap")
+@RenderSection("scripts", required: false)
+</body>
+</html>
