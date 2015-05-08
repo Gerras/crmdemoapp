@@ -6,7 +6,7 @@
 
 var neonForgotPassword = neonForgotPassword || {};
 
-;(function($, window, undefined)
+;(function($)
 {
 	"use strict";
 	
@@ -61,29 +61,35 @@ var neonForgotPassword = neonForgotPassword || {};
 				$(element).closest(".input-group").removeClass("validate-has-error");
 			},
 			
-			submitHandler: function(ev)
+			submitHandler: function()
 			{
-				$(".login-page").addClass("logging-in");
+				//$(".login-page").addClass("logging-in");
 				
 				// We consider its 30% completed form inputs are filled
-				neonForgotPassword.setPercentage(30, function()
-				{
-					// Lets move to 98%, meanwhile ajax data are sending and processing
-					neonForgotPassword.setPercentage(98, function()
-					{
-						// Send data to the server
-						$.ajax({
-						    url: "/Account/Register",
+				//neonForgotPassword.setPercentage(30, function()
+				//{
+				//	// Lets move to 98%, meanwhile ajax data are sending and processing
+				//	neonForgotPassword.setPercentage(98, function()
+				//	{
+			    // Send data to the server
+				var username = $("#username").val();
+				var firstname = $("#firstname").val();
+				var lastname = $("#lastname").val();
+				var password = $("#password").val();
+				var confirm = $("#password2").val();
+			    var dataobjects = {
+			        UserName: username,
+			        FirstName: firstname,
+			        LastName: lastname,
+			        Password: password,
+			        ConfirmPassword: confirm
+			    };
+				        $.ajax({
+				            method: "POST",
+				            url: "/Account/RegisterAccount",
 						    contentType: "application/json; charset=utf-8",
-							method: "POST",
-							dataType: "json",
-							data: {
-							    UserName: $("#username").val(),
-							    FirstName: $("#firstname").val(),
-							    LastName: $("#lastname").val(),
-							    Password: $("#password").val(),
-							    ConfirmPassword: $("#password2").val()
-							},
+
+							data: JSON.stringify(dataobjects),
 							error: function()
 							{
 								alert("An error occured!");
@@ -93,11 +99,10 @@ var neonForgotPassword = neonForgotPassword || {};
 								// From response you can fetch the data object retured
 							    //var email = response.submitted_data.email;
 							    $("#form_title").html(response.message);
-							    $("#form_title").after("<br/>");
 								
 								
 								// Form is fully completed, we update the percentage
-								neonForgotPassword.setPercentage(100);
+								//neonForgotPassword.setPercentage(100);
 								
 								
 								// We will give some time for the animation to finish, then execute the following procedures	
@@ -118,13 +123,11 @@ var neonForgotPassword = neonForgotPassword || {};
 										
 									//	// You can use the data returned from response variable
 								    //});
-								    $("#bottomLink").toggle("highlight");
-
 								}, 1000);
 							}
 						});
-					});
-				});
+				//	});
+				//});
 			}
 		});
 	
@@ -133,8 +136,8 @@ var neonForgotPassword = neonForgotPassword || {};
 		{
 			ev.preventDefault();
 			
-			var $current_step = neonForgotPassword.$steps_list.filter(".current"),
-				next_step = $(this).data("step"),
+			var $currentStep = neonForgotPassword.$steps_list.filter(".current"),
+				nextStep = $(this).data("step"),
 				validator = neonForgotPassword.$container.data("validator"),
 				errors = 0;
 			
@@ -147,37 +150,37 @@ var neonForgotPassword = neonForgotPassword || {};
 			}
 			else
 			{
-				var $next_step = neonForgotPassword.$steps_list.filter("#" + next_step),
-					$other_steps = neonForgotPassword.$steps_list.not( $next_step ),
+				var $nextStep = neonForgotPassword.$steps_list.filter("#" + nextStep),
+					$otherSteps = neonForgotPassword.$steps_list.not( $nextStep ),
 					
-					current_step_height = $current_step.data("height"),
-					next_step_height = $next_step.data("height");
+					currentStepHeight = $currentStep.data("height"),
+					nextStepHeight = $nextStep.data("height");
 				
-				TweenMax.set(neonForgotPassword.$steps, {css: {height: current_step_height}});
-				TweenMax.to(neonForgotPassword.$steps, 0.6, {css: {height: next_step_height}});
+				TweenMax.set(neonForgotPassword.$steps, {css: {height: currentStepHeight}});
+				TweenMax.to(neonForgotPassword.$steps, 0.6, {css: {height: nextStepHeight}});
 				
-				TweenMax.to($current_step, .3, {css: {autoAlpha: 0}, onComplete: function()
+				TweenMax.to($currentStep, .3, {css: {autoAlpha: 0}, onComplete: function()
 				{
-					$current_step.attr("style", "").removeClass("current");
+					$currentStep.attr("style", "").removeClass("current");
 					
-					var $form_elements = $next_step.find(".form-group");
+					var $formElements = $nextStep.find(".form-group");
 					
-					TweenMax.set($form_elements, {css: {autoAlpha: 0}});
-					$next_step.addClass("current");
+					TweenMax.set($formElements, {css: {autoAlpha: 0}});
+					$nextStep.addClass("current");
 					
-					$form_elements.each(function(i, el)
+					$formElements.each(function(i, el)
 					{
-						var $form_element = $(el);
+						var $formElement = $(el);
 						
-						TweenMax.to($form_element, .2, {css: {autoAlpha: 1}, delay: i * .09});
+						TweenMax.to($formElement, .2, {css: {autoAlpha: 1}, delay: i * .09});
 					});
 					
 					setTimeout(function()
 					{
-						$form_elements.add($next_step).add($next_step).attr("style", "");
-						$form_elements.first().find("input").focus();
+						$formElements.add($nextStep).add($nextStep).attr("style", "");
+						$formElements.first().find("input").focus();
 						
-					}, 1000 * (.5 + ($form_elements.length - 1) * .09));
+					}, 1000 * (.5 + ($formElements.length - 1) * .09));
 				}});
 			}
 		});
@@ -185,10 +188,10 @@ var neonForgotPassword = neonForgotPassword || {};
 		neonForgotPassword.$steps_list.each(function(i, el)
 		{
 			var $this = $(el),
-				is_current = $this.hasClass("current"),
+				isCurrent = $this.hasClass("current"),
 				margin = 20;
 			
-			if(is_current)
+			if(isCurrent)
 			{
 				$this.data("height", $this.outerHeight() + margin);
 			}
@@ -208,17 +211,17 @@ var neonForgotPassword = neonForgotPassword || {};
 		
 		if(neonForgotPassword.$body.hasClass("login-form-fall"))
 		{
-			var focus_set = false;
+			var focusSet = false;
 			
-			setTimeout(function(){ 
-				neonForgotPassword.$body.addClass("login-form-fall-init")
+			setTimeout(function() {
+			    neonForgotPassword.$body.addClass("login-form-fall-init");
 				
 				setTimeout(function()
 				{
-					if( !focus_set)
+					if( !focusSet)
 					{
 						neonForgotPassword.$container.find("input:first").focus();
-						focus_set = true;
+						focusSet = true;
 					}
 					
 				}, 550);

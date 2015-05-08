@@ -13,6 +13,11 @@ namespace CrmDemoApp.Infrastructure
         private readonly string _password;
         private XrmServiceContext _xrmServiceContext;
 
+        public XrmServiceContext XrmServiceContext
+        {
+            get { return _xrmServiceContext ?? (_xrmServiceContext = new XrmServiceContext(CreateCrmConnection())); }
+        }
+
         public XrmServiceConnector()
         {
             _userName = ConfigurationManager.AppSettings["userName"];
@@ -36,7 +41,10 @@ namespace CrmDemoApp.Infrastructure
 
         public void Dispose()
         {
-            throw new NotImplementedException();
+            if (_xrmServiceContext != null)
+            {
+                _xrmServiceContext.Dispose();
+            }
         }
     }
 }

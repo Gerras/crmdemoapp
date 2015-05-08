@@ -5,6 +5,8 @@ using System.Security.Claims;
 using System.Threading.Tasks;
 using System.Web;
 using System.Web.Mvc;
+using System.Web.Security;
+using CrmDemoApp.Infrastructure;
 using Microsoft.AspNet.Identity;
 using Microsoft.AspNet.Identity.Owin;
 using Microsoft.Owin.Security;
@@ -72,6 +74,33 @@ namespace CrmDemoApp.Controllers
             {
                 return View(model);
             }
+
+            var xrmServiceConnecter = new XrmServiceConnector();
+            var contact = xrmServiceConnecter.XrmServiceContext.ContactSet.Where(c => c.new_UserName == model.Email);
+            if(contact.Count() > 1)
+                throw new Exception("Too many users returned");
+            if (!contact.Any())
+            {
+
+            }
+            else
+            {
+                var user = contact.First();
+                if (HashingPasswords.VerifyHash(model.Password, "SHA512", user.new_Password))
+                {
+                    var authTicker = new FormsAuthenticationTicket(2, user.new_UserName, DateTime.Now,
+                        DateTime.Now.AddMinutes(FormsAuthentication.Timeout.TotalMinutes), false,
+                        user.ContactId.ToString());
+                    var authCookie = new HttpCookie(FormsAuthentication.FormsCookieName,
+                        FormsAuthentication.Encrypt(authTicker))
+                    {
+                        HttpOnly = true
+                    };
+                    Response.AppendCookie(authCookie);
+                    Response.Redirect(FormsAuthentication.GetRedirectUrl(user.new_UserName, false));
+                }
+            }
+                
 
             // This doesn't count login failures towards account lockout
             // To enable password failures to trigger account lockout, change to shouldLockout: true
@@ -142,42 +171,47 @@ namespace CrmDemoApp.Controllers
             return View();
         }
 
+ 
         //
-        // POST: /Account/Register
+        // POST: /Account/RegisterAccount
         [HttpPost]
         [AllowAnonymous]
         //[ValidateAntiForgeryToken]
-        public ActionResult Register(RegisterViewModel model)
+        public ActionResult RegisterAccount(RegisterViewModel model)
         {
             if (!ModelState.IsValid)
             {
-                //LogModelStateValidationFailed(System.Reflection.MethodBase.GetCurrentMethod().Name);
                 throw new Exception("Model state validation failed.");
-                //ThrowBusinessValidationError("Model state validation failed.");
             }
 
-            //if (ModelState.IsValid)
-            //{
-            //    var user = new ApplicationUser {};
-            //    var result = await UserManager.CreateAsync(user, model.Password);
-            //    if (result.Succeeded)
-            //    {
-            //        await SignInManager.SignInAsync(user, isPersistent:false, rememberBrowser:false);
-                    
-            //        // For more information on how to enable account confirmation and password reset please visit http://go.microsoft.com/fwlink/?LinkID=320771
-            //        // Send an email with this link
-            //        // string code = await UserManager.GenerateEmailConfirmationTokenAsync(user.Id);
-            //        // var callbackUrl = Url.Action("ConfirmEmail", "Account", new { userId = user.Id, code = code }, protocol: Request.Url.Scheme);
-            //        // await UserManager.SendEmailAsync(user.Id, "Confirm your account", "Please confirm your account by clicking <a href=\"" + callbackUrl + "\">here</a>");
+            AddContactToXrmService(model);
 
-            //        return RedirectToAction("Index", "Home");
-            //    }
-            //    AddErrors(result);
-            //}
+            return Json(new { message = "Succesfully registered your account! Return to login!" });
+        }
 
-            // If we got this far, something failed, redisplay form
-            return Json(new { message = "Succesfully registered your account!" },
-                JsonRequestBehavior.AllowGet);
+        private static void AddContactToXrmService(RegisterViewModel model)
+        {
+            var xrmServiceConnecter = new XrmServiceConnector();
+            xrmServiceConnecter.XrmServiceContext.AddObject(CreateContactForAccountRegistration(model));
+            xrmServiceConnecter.XrmServiceContext.SaveChanges();
+        } 
+
+        private static Xrm.Contact CreateContactForAccountRegistration(RegisterViewModel model)
+        {
+            return new Xrm.Contact
+            {
+                FirstName = model.FirstName,
+                LastName = model.LastName,
+                new_UserName = model.UserName,
+                EMailAddress1 = model.UserName,
+                new_Password = HashPaswordForContact(model.Password)
+
+            };
+        }
+
+        private static string HashPaswordForContact(string password)
+        {
+            return HashingPasswords.ComputeHash(password, "SHA512", null);
         }
 
         //
