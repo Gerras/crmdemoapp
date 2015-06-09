@@ -5,6 +5,8 @@ VisualStudioVersion = 12.0.31101.0
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CrmDemoApp", "CrmDemoApp\CrmDemoApp.csproj", "{B92119F6-EE76-48F1-AB53-FF8F3390B274}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "XrmUserStore", "XrmUserStore\XrmUserStore.csproj", "{1B7631B6-5456-486F-9A33-D550DF96F729}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -15,6 +17,10 @@ Global
 		{B92119F6-EE76-48F1-AB53-FF8F3390B274}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{B92119F6-EE76-48F1-AB53-FF8F3390B274}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{B92119F6-EE76-48F1-AB53-FF8F3390B274}.Release|Any CPU.Build.0 = Release|Any CPU
+		{1B7631B6-5456-486F-9A33-D550DF96F729}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{1B7631B6-5456-486F-9A33-D550DF96F729}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{1B7631B6-5456-486F-9A33-D550DF96F729}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{1B7631B6-5456-486F-9A33-D550DF96F729}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

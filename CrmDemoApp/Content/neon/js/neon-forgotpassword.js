@@ -86,7 +86,7 @@ var neonForgotPassword = neonForgotPassword || {};
 			    };
 				        $.ajax({
 				            method: "POST",
-				            url: "/Account/RegisterAccount",
+				            url: "/Account/Register",
 						    contentType: "application/json; charset=utf-8",
 
 							data: JSON.stringify(dataobjects),
@@ -96,34 +96,29 @@ var neonForgotPassword = neonForgotPassword || {};
 							},
 							success: function(response)
 							{
-								// From response you can fetch the data object retured
-							    //var email = response.submitted_data.email;
-							    $("#form_title").html(response.message);
-								
-								
-								// Form is fully completed, we update the percentage
-								//neonForgotPassword.setPercentage(100);
-								
-								
+							    if (response.success) {
+							        $("#form_title").html(response.message);
+							        setTimeout(function() {
+							            window.location.href = "/Home/ViewContacts";
+							        }, 1000);
+							    } else {
+							        
+							        // From response you can fetch the data object retured
+							        //var email = response.submitted_data.email;
+							        var stringFormater = "";
+							        $.each(response.message, function (index, value) {
+							            stringFormater += "<p>" + (index + 1) + ": " + value + "</p>";
+							        });
+							        $("#form_title").html(stringFormater);
+							        $("html, body").animate({ scrollTop: $(document).height() }, "slow");
+
+							        // Form is fully completed, we update the percentage
+							        //neonForgotPassword.setPercentage(100);
+							    }
 								// We will give some time for the animation to finish, then execute the following procedures	
-								setTimeout(function()
-								{
-								    $("html, body").animate({ scrollTop: $(document).height() }, "slow");
-									// Hide the description title
-									//$(".login-page .login-header .description").slideUp();
-									
-									//// Hide the register form (steps)
-									//neonForgotPassword.$steps.slideUp("normal", function()
-									//{
-									//	// Remove loging-in state
-									//	$(".login-page").removeClass("logging-in");
-										
-									//	// Now we show the success message
-									//	$(".form-forgotpassword-success").slideDown("normal");
-										
-									//	// You can use the data returned from response variable
-								    //});
-								}, 1000);
+								//setTimeout(function() {
+								//    window.location.href = "/Home/ViewContacts";
+								//}, 1000);
 							}
 						});
 				//	});

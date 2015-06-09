@@ -49,27 +49,19 @@ namespace CrmDemoApp.Models
     public class LoginViewModel
     {
         [Required]
-        [Display(Name = "Email")]
         [EmailAddress]
-        public string Email { get; set; }
+        public string Username { get; set; }
 
         [Required]
         [DataType(DataType.Password)]
-        [Display(Name = "Password")]
         public string Password { get; set; }
 
-        [Display(Name = "Remember me?")]
-        public bool RememberMe { get; set; }
+        //Username: username,
+        //Password: password
     }
 
     public class RegisterViewModel
     {
-
-                                //        UserName: $("#username").val(),
-                                //FirstName: $("#firstname").val(),
-                                //LastName: $("#lastname").val(),
-                                //Password: $("#password").val(),
-                                //Password2: $("#password2").val()
         [Required]
         [EmailAddress]
         public string UserName { get; set; }

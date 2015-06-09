@@ -1,7 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Security.Principal;
 using System.Web;
 using System.Web.Mvc;
 using System.Web.Security;
@@ -12,11 +9,10 @@ namespace CrmDemoApp.Infrastructure
     public class MyAuthorizeAttribute : AuthorizeAttribute
     {
         protected override bool AuthorizeCore(HttpContextBase httpContext)
-    {
-        var isAuthenticated = base.AuthorizeCore(httpContext);
-        if (isAuthenticated) 
         {
-            string cookieName = FormsAuthentication.FormsCookieName;
+            var isAuthenticated = base.AuthorizeCore(httpContext);
+            if (!isAuthenticated) return false;
+            var cookieName = FormsAuthentication.FormsCookieName;
             if (!httpContext.User.Identity.IsAuthenticated ||
                 httpContext.Request.Cookies == null || 
                 httpContext.Request.Cookies[cookieName] == null)
@@ -29,16 +25,13 @@ namespace CrmDemoApp.Infrastructure
 
             // This is where you can read the userData part of the authentication
             // cookie and fetch the token
+            if (authTicket == null) return true;
             var webServiceToken = authTicket.UserData;
 
-            //IPrincipal userPrincipal = ... create some custom implementation
-            //                               and store the web service token as property
+            var userPrincipal = new CustomPrincipal("test", webServiceToken);
 
-            //IPrincipal userPrincipal = 
-            //// Inject the custom principal in the HttpContext
-            //httpContext.User = userPrincipal;
+            httpContext.User = userPrincipal;
+            return true;
         }
-        return isAuthenticated;
-    }
     }
 }

@@ -59,15 +59,18 @@ var neonLogin = neonLogin || {};
 					// The form data are subbmitted, we can forward the progress to 70%
 					neonLogin.setPercentage(40 + randomPct);
 											
-					// Send data to the server
+				    // Send data to the server
+					var username = $("#username").val();
+				    var password = $("#password").val();
+					var dataobjects = {
+					    Username: username,
+					    Password: password
+					};
 					$.ajax({
+					    method: "POST",
 						url: "/Account/Login",
-						method: "POST",
-						dataType: "json",
-						data: {
-							username: $("input#username").val(),
-							password: $("input#password").val()
-						},
+						contentType: "application/json; charset=utf-8",
+						data: JSON.stringify(dataobjects),
 						error: function()
 						{
 							alert("An error occoured!");
@@ -202,8 +205,8 @@ var neonLogin = neonLogin || {};
 		{
 			var focusSet = false;
 			
-			setTimeout(function(){ 
-				neonLogin.$body.addClass("login-form-fall-init")
+			setTimeout(function() {
+			    neonLogin.$body.addClass("login-form-fall-init");
 				
 				setTimeout(function()
 				{

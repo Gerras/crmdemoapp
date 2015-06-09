@@ -7,6 +7,8 @@ using Microsoft.AspNet.Identity;
 using Microsoft.AspNet.Identity.Owin;
 using Microsoft.Owin.Security;
 using CrmDemoApp.Models;
+using CrmDemoApp.Models.ManageModels;
+using XrmUserStore;
 
 namespace CrmDemoApp.Controllers
 {
@@ -15,6 +17,7 @@ namespace CrmDemoApp.Controllers
     {
         private ApplicationSignInManager _signInManager;
         private ApplicationUserManager _userManager;
+        private XrmServiceConnection _xrmServiceConnection;
 
         public ManageController()
         {
@@ -50,6 +53,19 @@ namespace CrmDemoApp.Controllers
             }
         }
 
+        public XrmServiceConnection XrmService
+        {
+            get
+            {
+                return _xrmServiceConnection ?? HttpContext.GetOwinContext().Get<XrmServiceConnection>();
+            }
+            private set
+            {
+                _xrmServiceConnection = value;
+            }
+        }
+
+
         //
         // GET: /Manage/Index
         public async Task<ActionResult> Index(ManageMessageId? message)
@@ -64,6 +80,13 @@ namespace CrmDemoApp.Controllers
                 : "";
 
             var userId = User.Identity.GetUserId();
+
+            var userGuid = new Guid(userId);
+
+            var contact = XrmService.XrmServiceContext.ContactSet.Where(x => x.Id == userGuid).ToList().First();
+
+            var profileViewModel = ProfileViewModel.InitializeViewModel(contact);
+
             var model = new IndexViewModel
             {
                 HasPassword = HasPassword(),
@@ -72,7 +95,7 @@ namespace CrmDemoApp.Controllers
                 Logins = await UserManager.GetLoginsAsync(userId),
                 BrowserRemembered = await AuthenticationManager.TwoFactorBrowserRememberedAsync(userId)
             };
-            return View(model);
+            return View(profileViewModel);
         }
 
         //

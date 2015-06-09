@@ -1,16 +1,15 @@
 ﻿using System;
-using System.Globalization;
 using System.Linq;
-using System.Security.Claims;
 using System.Threading.Tasks;
 using System.Web;
 using System.Web.Mvc;
-using System.Web.Security;
 using CrmDemoApp.Infrastructure;
+using CrmDemoApp.Models;
 using Microsoft.AspNet.Identity;
 using Microsoft.AspNet.Identity.Owin;
 using Microsoft.Owin.Security;
-using CrmDemoApp.Models;
+using Xrm;
+using XrmUserStore;
 
 namespace CrmDemoApp.Controllers
 {
@@ -67,57 +66,35 @@ namespace CrmDemoApp.Controllers
         // POST: /Account/Login
         [HttpPost]
         [AllowAnonymous]
-        [ValidateAntiForgeryToken]
-        public async Task<ActionResult> Login(LoginViewModel model, string returnUrl)
+        //[ValidateAntiForgeryToken]
+        public async Task<ActionResult> Login(LoginViewModel model)
         {
             if (!ModelState.IsValid)
             {
-                return View(model);
+                return Json(new { login_status = "invalid" });
             }
+            //TODO: FIX THIS
 
-            var xrmServiceConnecter = new XrmServiceConnector();
-            var contact = xrmServiceConnecter.XrmServiceContext.ContactSet.Where(c => c.new_UserName == model.Email);
-            if(contact.Count() > 1)
-                throw new Exception("Too many users returned");
-            if (!contact.Any())
-            {
-
-            }
-            else
-            {
-                var user = contact.First();
-                if (HashingPasswords.VerifyHash(model.Password, "SHA512", user.new_Password))
-                {
-                    var authTicker = new FormsAuthenticationTicket(2, user.new_UserName, DateTime.Now,
-                        DateTime.Now.AddMinutes(FormsAuthentication.Timeout.TotalMinutes), false,
-                        user.ContactId.ToString());
-                    var authCookie = new HttpCookie(FormsAuthentication.FormsCookieName,
-                        FormsAuthentication.Encrypt(authTicker))
-                    {
-                        HttpOnly = true
-                    };
-                    Response.AppendCookie(authCookie);
-                    Response.Redirect(FormsAuthentication.GetRedirectUrl(user.new_UserName, false));
-                }
-            }
-                
-
-            // This doesn't count login failures towards account lockout
-            // To enable password failures to trigger account lockout, change to shouldLockout: true
-            var result = await SignInManager.PasswordSignInAsync(model.Email, model.Password, model.RememberMe, shouldLockout: false);
+            var result = await SignInManager.PasswordSignInAsync(model.Username, model.Password, false, false);
             switch (result)
             {
                 case SignInStatus.Success:
-                    return RedirectToLocal(returnUrl);
+                    return Json(new { login_status = "success", redirect_url ="/Home/ViewContacts"});
+                    //return RedirectToLocal("/Home/ViewContacts");
                 case SignInStatus.LockedOut:
-                    return View("Lockout");
-                case SignInStatus.RequiresVerification:
-                    return RedirectToAction("SendCode", new { ReturnUrl = returnUrl, RememberMe = model.RememberMe });
+                    return Json(new { login_status = "success", redirect_url ="/Home/ViewContacts"});
+                //case SignInStatus.RequiresVerification:
+                //    return RedirectToAction("SendCode", new { ReturnUrl = returnUrl, RememberMe = model.RememberMe });
                 case SignInStatus.Failure:
                 default:
-                    ModelState.AddModelError("", "Invalid login attempt.");
-                    return View(model);
+                    //invalid
+                    return Json(new { login_status = "invalid" });
+                    //ModelState.AddModelError("", "Invalid login attempt.");
+                    //return View(model);
             }
+
+            //Response.Redirect("/Home/ViewContacts");
+            //return View();
         }
 
         //
@@ -177,41 +154,25 @@ namespace CrmDemoApp.Controllers
         [HttpPost]
         [AllowAnonymous]
         //[ValidateAntiForgeryToken]
-        public ActionResult RegisterAccount(RegisterViewModel model)
+        public async Task<ActionResult> Register(RegisterViewModel model)
         {
             if (!ModelState.IsValid)
             {
                 throw new Exception("Model state validation failed.");
             }
 
-            AddContactToXrmService(model);
+            var user = new XrmIdentityUser { UserName = model.UserName, Email = model.UserName, FirstName = model.FirstName, LastName = model.LastName };
+            var result = await UserManager.CreateAsync(user, model.Password);
+            if (!result.Succeeded) return Json(new {success = false, message = result.Errors.ToList()});
+            await SignInManager.SignInAsync(user, false, false);
 
-            return Json(new { message = "Succesfully registered your account! Return to login!" });
-        }
+            // For more information on how to enable account confirmation and password reset please visit http://go.microsoft.com/fwlink/?LinkID=320771
+            // Send an email with this link
+            // string code = await UserManager.GenerateEmailConfirmationTokenAsync(user.Id);
+            // var callbackUrl = Url.Action("ConfirmEmail", "Account", new { userId = user.Id, code = code }, protocol: Request.Url.Scheme);
+            // await UserManager.SendEmailAsync(user.Id, "Confirm your account", "Please confirm your account by clicking <a href=\"" + callbackUrl + "\">here</a>");
 
-        private static void AddContactToXrmService(RegisterViewModel model)
-        {
-            var xrmServiceConnecter = new XrmServiceConnector();
-            xrmServiceConnecter.XrmServiceContext.AddObject(CreateContactForAccountRegistration(model));
-            xrmServiceConnecter.XrmServiceContext.SaveChanges();
-        } 
-
-        private static Xrm.Contact CreateContactForAccountRegistration(RegisterViewModel model)
-        {
-            return new Xrm.Contact
-            {
-                FirstName = model.FirstName,
-                LastName = model.LastName,
-                new_UserName = model.UserName,
-                EMailAddress1 = model.UserName,
-                new_Password = HashPaswordForContact(model.Password)
-
-            };
-        }
-
-        private static string HashPaswordForContact(string password)
-        {
-            return HashingPasswords.ComputeHash(password, "SHA512", null);
+            return Json(new { success = true, message = "Succesfully registered your account! Return to login!" });
         }
 
         //
@@ -409,7 +370,7 @@ namespace CrmDemoApp.Controllers
                 {
                     return View("ExternalLoginFailure");
                 }
-                var user = new ApplicationUser { UserName = model.Email, Email = model.Email };
+                var user = new XrmIdentityUser { UserName = model.Email, Email = model.Email };
                 var result = await UserManager.CreateAsync(user);
                 if (result.Succeeded)
                 {
@@ -428,9 +389,9 @@ namespace CrmDemoApp.Controllers
         }
 
         //
-        // POST: /Account/LogOff
-        [HttpPost]
-        [ValidateAntiForgeryToken]
+        // GET: /Account/LogOff
+        [HttpGet]
+        //[ValidateAntiForgeryToken]
         public ActionResult LogOff()
         {
             AuthenticationManager.SignOut();

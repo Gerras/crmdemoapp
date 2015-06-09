@@ -7,8 +7,16 @@ using System.Web.Security;
 
 namespace CrmDemoApp.Infrastructure
 {
-    public class CustomPrincipal : IPrincipal
+    public class CustomPrincipal : ICustomPrincipal
     {
+
+        public CustomPrincipal(string username, string webServicetoken)
+        {
+            Identity = new GenericIdentity(username);
+            WebServiceToken = webServicetoken;
+        }
+
+
         public bool IsInRole(string role)
         {
             return Identity != null && Identity.IsAuthenticated &&
@@ -17,6 +25,17 @@ namespace CrmDemoApp.Infrastructure
 
         public IIdentity Identity { get; private set; }
 
-        public string WebserviceToken { get; set; }
+        public string FirstName { get; set; }
+
+        public string LastName { get; set; }
+
+        public string WebServiceToken { get; private set; }
+    }
+
+    public interface ICustomPrincipal : IPrincipal
+    {
+        string FirstName { get; set; }
+
+        string LastName { get; set; }
     }
 }

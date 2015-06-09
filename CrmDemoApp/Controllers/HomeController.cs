@@ -1,14 +1,33 @@
-﻿using System.Web.Mvc;
-using CrmDemoApp.Infrastructure;
+﻿using System.Linq;
+using System.Web;
+using System.Web.Mvc;
+using Microsoft.AspNet.Identity.Owin;
+using XrmUserStore;
 
 namespace CrmDemoApp.Controllers
 {
     public class HomeController : Controller
     {
+        private XrmServiceConnection _xrmServiceConnection;
+
+
+        public XrmServiceConnection XrmServiceConnection 
+        {
+            get
+            {
+                return _xrmServiceConnection ?? HttpContext.GetOwinContext().Get<XrmServiceConnection>();
+            }
+            private set
+            {
+                _xrmServiceConnection = value;
+            }
+        }
+
+
+        [Authorize]
         public ActionResult ViewContacts()
         {
-            var xrmServiceContext = new XrmServiceConnector().CreateXrmServiceConnector();
-            var contacts = xrmServiceContext.ContactSet;
+            var contacts = XrmServiceConnection.XrmServiceContext.ContactSet.ToList();
             return View(contacts);
         }
 
